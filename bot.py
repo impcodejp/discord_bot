@@ -1,15 +1,22 @@
 import discord
 import os
 import io
-from discord.ext import commands
+import datetime
+from discord.ext import commands, tasks
 from channel.ai_chatbot import AIChatbot
 from tools.throw_ai import GemmaChatbot
+from tools.qiita_api import QiitaApi
+from tools.weather_api import WeatherApi
 
 # ==========================================
-# 定数・設定 (プロンプトやIDはここで管理)
+# 定数・設定
 # ==========================================
 PAY_HISTORY_CHANNEL_ID = 1460133627781185702
 CHAT_CHANNEL_ID = 1459642419153993864
+FREE_CHAT_CHANNEL_ID = 1457773911553872059
+
+# タイムゾーン定義
+JST = datetime.timezone(datetime.timedelta(hours=9))
 
 # 支払いデータ抽出用プロンプト
 PROMPT_EXTRACT_PAYMENT = """
@@ -22,7 +29,7 @@ PROMPT_EXTRACT_PAYMENT = """
 {history_text}
 """
 
-# コメント生成用プロンプト (最新版)
+# コメント生成用プロンプト
 PROMPT_GENERATE_COMMENT = """
 # Role (役割)
 あなたは{user_name}のことが大好きな、24歳の女性です。
@@ -78,6 +85,9 @@ class MyBot(commands.Bot):
         # コマンドツリーの同期
         await self.tree.sync()
         print("Slash commands synced.")
+        
+        # 定期実行タスクの開始 (イベントループ内で実行されるため安全)
+        self.daily_task.start()
 
     async def on_ready(self):
         print(f'Bot logged in as {self.user} (ID: {self.user.id})')
@@ -97,6 +107,79 @@ class MyBot(commands.Bot):
         # コマンド処理も継続
         await self.process_commands(message)
 
+    # ---------------------------------------------------------
+    # 定期実行タスク
+    # ---------------------------------------------------------
+    @tasks.loop(time=datetime.time(hour=7, minute=0, tzinfo=JST))
+    async def daily_task(self):
+        """毎日指定時刻に実行されるタスク"""
+        print("Executing daily task...")
+        channel = self.get_channel(FREE_CHAT_CHANNEL_ID)
+    
+        # 起動直後などでキャッシュにない場合はfetchを試みる
+        if not channel:
+            try:
+                channel = await self.fetch_channel(FREE_CHAT_CHANNEL_ID)
+            except Exception as e:
+                print(f"Channel fetch error: {e}")
+                return
+        city_cd = 230010  # 名古屋市の都市コード
+        nagoya_weather_api = WeatherApi(city_cd)
+        nagoya_weather = nagoya_weather_api.get()
+
+        qiita_api = QiitaApi(per_page=5)
+        response = qiita_api.get()
+        items = response
+        itemlist = []
+        
+        for item in items:
+            title = item['title']
+            url = item['url']
+            likes = item['likes_count']
+            user = item['user']['id']
+            itemlist.append(f"⭐ {likes} | {title} by {user}\n{url}")
+            
+        
+        if channel:
+            if channel:
+            # --- Embed（埋め込みメッセージ）を作成 ---
+                embed = discord.Embed(
+                title=f"おはようございます！",
+                description=f"本日{datetime.datetime.now().strftime('%Y年%m月%d日')}の名古屋の天気は\n**{nagoya_weather[0]}** です☀️",
+                color=0x00ff00 # 緑色の枠線（好きな色に変えられます）
+            )
+
+            # --- 天気アイコンをサムネイルとして右上に表示 ---
+            embed.set_thumbnail(url=nagoya_weather[5])
+
+            # --- 降水確率を並べて表示 ---
+            # APIから "20%" のように文字で来るので、末尾の % は不要
+            rain_info = (
+                f"🔹 00-06時: {nagoya_weather[1]}\n"
+                f"🔹 06-12時: {nagoya_weather[2]}\n"
+                f"🔹 12-18時: {nagoya_weather[3]}\n"
+                f"🔹 18-24時: {nagoya_weather[4]}"
+            )
+            # inline=False にすると、横幅いっぱいに使います
+            embed.add_field(name="☔ 降水確率", value=rain_info, inline=False)
+
+            # --- Qiitaの記事を追加 ---
+            # itemlistの中身が「タイトル + URL」の文字列になっている想定
+            qiita_text = (
+                f"1️⃣ {itemlist[0]}\n"
+                f"2️⃣ {itemlist[1]}\n"
+                f"3️⃣ {itemlist[2]}"
+            )
+            embed.add_field(name="🚀 注目のQiita記事 (Python)", value=qiita_text, inline=False)
+
+            # --- 送信 ---
+            await channel.send(embed=embed)
+
+    @daily_task.before_loop
+    async def before_daily_task(self):
+        """タスク実行前にBotの準備完了を待つ"""
+        await self.wait_until_ready()
+
 
 # ==========================================
 # メイン処理クラス
@@ -105,6 +188,7 @@ class BotApp:
     def __init__(self):
         self.bot = MyBot()
         self._setup_commands()
+        # 定期タスクの設定は MyBot クラス内に移動しました
 
     def _setup_commands(self):
         """スラッシュコマンドの定義"""
@@ -149,7 +233,6 @@ class BotApp:
             return
 
         # 3. 結果の送信
-        
         header = "支払履歴\n日付,時間,ユーザー名,品目,金額\n"
         full_text = header + pay_data
 
