@@ -206,6 +206,7 @@ class BotApp:
 
     async def _handle_pay_history(self, interaction: discord.Interaction):
         """支払い履歴コマンドの実処理部分"""
+        self.logger.info("支払い履歴コマンド実行中...")
         await interaction.response.defer()
 
         # 1. 履歴データの取得

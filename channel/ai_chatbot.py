@@ -34,7 +34,8 @@ class AIChatbot:
         ]
 
     async def process(self, message):
-        print(f'AI processing for: {message.author.name}')
+        self.logger.info('チャットボット処理開始...')
+        self.logger.info(f'{message.author.name}さんのメッセージを処理中...')
         
         try:
             # --- 履歴取得ロジック (変更なし) ---
