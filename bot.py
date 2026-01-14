@@ -142,39 +142,39 @@ class MyBot(commands.Bot):
             
         
         if channel:
-            if channel:
-            # --- Embed（埋め込みメッセージ）を作成 ---
-                embed = discord.Embed(
-                title=f"おはようございます！",
-                description=f"本日{datetime.datetime.now().strftime('%Y年%m月%d日')}の名古屋の天気は\n**{nagoya_weather[0]}** です☀️",
-                color=0x00ff00 # 緑色の枠線（好きな色に変えられます）
-            )
 
-            # --- 天気アイコンをサムネイルとして右上に表示 ---
-            embed.set_thumbnail(url=nagoya_weather[5])
+        # --- Embed（埋め込みメッセージ）を作成 ---
+            embed = discord.Embed(
+            title=f"おはようございます！",
+            description=f"本日{datetime.datetime.now().strftime('%Y年%m月%d日')}の名古屋の天気は\n**{nagoya_weather[0]}** です☀️",
+            color=0x00ff00 # 緑色の枠線（好きな色に変えられます）
+        )
 
-            # --- 降水確率を並べて表示 ---
-            # APIから "20%" のように文字で来るので、末尾の % は不要
-            rain_info = (
-                f"🔹 00-06時: {nagoya_weather[1]}\n"
-                f"🔹 06-12時: {nagoya_weather[2]}\n"
-                f"🔹 12-18時: {nagoya_weather[3]}\n"
-                f"🔹 18-24時: {nagoya_weather[4]}"
-            )
-            # inline=False にすると、横幅いっぱいに使います
-            embed.add_field(name="☔ 降水確率", value=rain_info, inline=False)
+        # --- 天気アイコンをサムネイルとして右上に表示 ---
+        embed.set_thumbnail(url=nagoya_weather[5])
 
-            # --- Qiitaの記事を追加 ---
-            # itemlistの中身が「タイトル + URL」の文字列になっている想定
-            qiita_text = (
-                f"1️⃣ {itemlist[0]}\n"
-                f"2️⃣ {itemlist[1]}\n"
-                f"3️⃣ {itemlist[2]}"
-            )
-            embed.add_field(name="🚀 注目のQiita記事 (Python)", value=qiita_text, inline=False)
+        # --- 降水確率を並べて表示 ---
+        # APIから "20%" のように文字で来るので、末尾の % は不要
+        rain_info = (
+            f"🔹 00-06時: {nagoya_weather[1]}\n"
+            f"🔹 06-12時: {nagoya_weather[2]}\n"
+            f"🔹 12-18時: {nagoya_weather[3]}\n"
+            f"🔹 18-24時: {nagoya_weather[4]}"
+        )
+        # inline=False にすると、横幅いっぱいに使います
+        embed.add_field(name="☔ 降水確率", value=rain_info, inline=False)
 
-            # --- 送信 ---
-            await channel.send(embed=embed)
+        # --- Qiitaの記事を追加 ---
+        # itemlistの中身が「タイトル + URL」の文字列になっている想定
+        qiita_text = (
+            f"1️⃣ {itemlist[0]}\n"
+            f"2️⃣ {itemlist[1]}\n"
+            f"3️⃣ {itemlist[2]}"
+        )
+        embed.add_field(name="🚀 注目のQiita記事 (Python)", value=qiita_text, inline=False)
+
+        # --- 送信 ---
+        await channel.send(embed=embed)
 
     @daily_task.before_loop
     async def before_daily_task(self):
