@@ -2,14 +2,15 @@ import google.genai as genai
 from google.genai import types
 
 class GemmaChatbot:
-    def __init__(self, api_key: str, model_name: str = "gemma-3-27b-it"):
+    def __init__(self, api_key: str, model_name: str = "gemma-3-27b-it", logger=None):
         """
         初期化メソッド
         Args:
             api_key (str): Google Gemini API Key
             model_name (str): 使用するモデル名
         """
-        print(f'GemmaChatbot initialized (Model: {model_name})')
+        self.logger = logger
+        self.logger.info(f'GemmaChatbot初期化 (Model: {model_name})')
         
         self.model_name = model_name
         
@@ -40,8 +41,7 @@ class GemmaChatbot:
         """
         プロンプトを生成してAPIに送信するメソッド
         """
-        print('throw gemma')
-        print(f'user model ({self.model_name}) processing input.')
+        self.logger.info(f'Gemmaモデル ({self.model_name}) で処理中...')
         try:
             user_prompt = user_input
 
@@ -58,5 +58,5 @@ class GemmaChatbot:
 
         except Exception as e:
             error_msg = f"Google Gen AI API Error: {e}"
-            print(error_msg)
+            self.logger.error(error_msg)
             return "申し訳ありません。エラーが発生しました。"

@@ -1,11 +1,15 @@
 import requests
+import logging
 
 class WeatherApi:
-    def __init__(self, city_code: int):
+    def __init__(self, city_code: int, logger=None):
+        self.logger = logger
         self.city_code = str(city_code)
         self.base_url = "https://weather.tsukumijima.net/api/forecast"
         
+        self.logger.info(f"名古屋用天気取得Api 初期化完了: city_code={self.city_code}")
     def get(self):
+        """名古屋市の天気情報を取得する"""
         params = {
             'city': self.city_code
             }

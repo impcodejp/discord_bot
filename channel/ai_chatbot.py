@@ -2,8 +2,9 @@ import google.genai as genai
 from google.genai import types
 
 class AIChatbot:
-    def __init__(self, AI_API_KEY):
-        print('AIChatbot initialized (Gemma Mode - Google Gen AI SDK)')
+    def __init__(self, AI_API_KEY, logger=None):
+        self.logger = logger
+        self.logger.info('AIChatbot初期化完了 (Gemma Mode - Google Gen AI SDK)')
         
         # 1. クライアントの初期化
         self.client = genai.Client(api_key=AI_API_KEY)
@@ -91,8 +92,7 @@ class AIChatbot:
 """
 
             # 2. APIにリクエストを送る (非同期: client.aio.models.generate_content)
-            print("--- Sending Prompt ---")
-            print(full_prompt)
+            self.logger.info('Gemmaモデルで処理中...')
             
             response = await self.client.aio.models.generate_content(
                 model=self.model_name,
@@ -107,5 +107,5 @@ class AIChatbot:
             return response_text
 
         except Exception as e:
-            print(f"Google Gen AI API Error: {e}")
+            self.logger.error(f"Google Gen AI API Error: {e}")
             return "申し訳ありません。エラーが発生しました。"

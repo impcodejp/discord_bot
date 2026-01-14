@@ -2,6 +2,7 @@ import discord
 import os
 import io
 import datetime
+import logging
 from discord.ext import commands, tasks
 from channel.ai_chatbot import AIChatbot
 from tools.throw_ai import GemmaChatbot
@@ -64,16 +65,17 @@ emojiを適度に交えて、感情豊かに表現してください。
 # Botクラス定義
 # ==========================================
 class MyBot(commands.Bot):
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         intents = discord.Intents.default()
         intents.message_content = True
         super().__init__(command_prefix="!", intents=intents)
 
         # AIの初期化
         AI_API_KEY = os.getenv('GEMINI_API_KEY')
-        self.ai_chatbot = AIChatbot(AI_API_KEY)
-        self.ai_throw_gemma27 = GemmaChatbot(AI_API_KEY)
-        self.ai_throw_gemma4 = GemmaChatbot(AI_API_KEY, model_name="gemma-3-4b-it")
+        self.ai_chatbot = AIChatbot(AI_API_KEY, logger=self.logger)
+        self.ai_throw_gemma27 = GemmaChatbot(AI_API_KEY, logger=self.logger)
+        self.ai_throw_gemma4 = GemmaChatbot(AI_API_KEY, model_name="gemma-3-4b-it", logger=self.logger)
 
         # チャンネルごとのハンドラー設定
         self.handlers = {
@@ -83,14 +85,14 @@ class MyBot(commands.Bot):
     async def setup_hook(self):
         """起動時に実行されるセットアップ処理"""
         # コマンドツリーの同期
+        self.logger.info("スラッシュコマンドの同期実行")
         await self.tree.sync()
-        print("Slash commands synced.")
         
         # 定期実行タスクの開始 (イベントループ内で実行されるため安全)
         self.daily_task.start()
 
     async def on_ready(self):
-        print(f'Bot logged in as {self.user} (ID: {self.user.id})')
+        self.logger.info(f'Bot({self.user})を起動しました。 (ID: {self.user.id})')
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -99,7 +101,6 @@ class MyBot(commands.Bot):
         # 通常の会話ハンドラー処理
         handler = self.handlers.get(message.channel.id)
         if handler:
-            print(f"[{message.channel.name}] {message.author}: {message.content}")
             response = await handler.process(message)
             if response:
                 await message.channel.send(response)
@@ -113,7 +114,7 @@ class MyBot(commands.Bot):
     @tasks.loop(time=datetime.time(hour=7, minute=0, tzinfo=JST))
     async def daily_task(self):
         """毎日指定時刻に実行されるタスク"""
-        print("Executing daily task...")
+        self.logger.info("毎朝7:00定期タスク実行中...")
         channel = self.get_channel(FREE_CHAT_CHANNEL_ID)
     
         # 起動直後などでキャッシュにない場合はfetchを試みる
@@ -121,13 +122,13 @@ class MyBot(commands.Bot):
             try:
                 channel = await self.fetch_channel(FREE_CHAT_CHANNEL_ID)
             except Exception as e:
-                print(f"Channel fetch error: {e}")
+                self.logger.error(f"Channel fetch error: {e}")
                 return
         city_cd = 230010  # 名古屋市の都市コード
-        nagoya_weather_api = WeatherApi(city_cd)
+        nagoya_weather_api = WeatherApi(city_cd, logger=self.logger)
         nagoya_weather = nagoya_weather_api.get()
 
-        qiita_api = QiitaApi(per_page=5)
+        qiita_api = QiitaApi(per_page=5, logger=self.logger)
         response = qiita_api.get()
         items = response
         itemlist = []
@@ -185,10 +186,11 @@ class MyBot(commands.Bot):
 # メイン処理クラス
 # ==========================================
 class BotApp:
-    def __init__(self):
-        self.bot = MyBot()
+    def __init__(self, logger):
+        
+        self.logger = logger
+        self.bot = MyBot(logger)
         self._setup_commands()
-        # 定期タスクの設定は MyBot クラス内に移動しました
 
     def _setup_commands(self):
         """スラッシュコマンドの定義"""
@@ -219,16 +221,16 @@ class BotApp:
         try:
             # 抽出
             extract_prompt = PROMPT_EXTRACT_PAYMENT.format(history_text=history_text)
-            print('支出データを解析しています...')
+            self.logger.info('支出データを解析しています...')
             pay_data = await self.bot.ai_throw_gemma27.generate_response(extract_prompt)
 
             # コメント生成
             comment_prompt = PROMPT_GENERATE_COMMENT.format(pay_data=pay_data, user_name=interaction.user.display_name)
-            print('コメントを生成しています...')
+            self.logger.info('コメントを生成しています...')
             comment = await self.bot.ai_throw_gemma4.generate_response(comment_prompt)
 
         except Exception as e:
-            print(f"AI Error: {e}")
+            self.logger.error(f"AI Error: {e}")
             await interaction.followup.send("AIによる解析中にエラーが発生しました。")
             return
 
