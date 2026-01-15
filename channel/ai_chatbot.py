@@ -41,7 +41,7 @@ class AIChatbot:
             # --- 履歴取得ロジック (変更なし) ---
             history_text = ""
             previous_messages = []
-            async for old_msg in message.channel.history(limit=10, before=message):
+            async for old_msg in message.channel.history(limit=20, before=message):
                 previous_messages.append(old_msg)
             previous_messages.reverse()
 

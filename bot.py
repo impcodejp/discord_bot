@@ -68,6 +68,7 @@ class MyBot(commands.Bot):
     def __init__(self, logger):
         self.logger = logger
         intents = discord.Intents.default()
+        intents.members = True
         intents.message_content = True
         super().__init__(command_prefix="!", intents=intents)
 
@@ -81,6 +82,11 @@ class MyBot(commands.Bot):
         self.handlers = {
             CHAT_CHANNEL_ID: self.ai_chatbot,
         }
+        
+        # 定刻切断ボイスチャンネルリスト(辞書型で"yy-mm":[channel_id, ...]の形)
+        self.voice_channels_to_disconnect = {
+        "4-00":[1461385299329552608]
+        }
 
     async def setup_hook(self):
         """起動時に実行されるセットアップ処理"""
@@ -90,6 +96,7 @@ class MyBot(commands.Bot):
         
         # 定期実行タスクの開始 (イベントループ内で実行されるため安全)
         self.daily_task.start()
+        self.disconnect_voice_channels.start()
 
     async def on_ready(self):
         self.logger.info(f'Bot({self.user})を起動しました。 (ID: {self.user.id})')
@@ -111,6 +118,55 @@ class MyBot(commands.Bot):
     # ---------------------------------------------------------
     # 定期実行タスク
     # ---------------------------------------------------------
+    @tasks.loop(time=datetime.time(hour=4, minute=00, tzinfo=JST))
+    async def disconnect_voice_channels(self):
+        """毎日4:00に指定されたボイスチャンネルを切断するタスク"""
+        self.logger.info("毎朝4:00定期タスク実行中...")
+        channels = self.voice_channels_to_disconnect['4-00']
+        notise_channel = self.get_channel(FREE_CHAT_CHANNEL_ID)
+        
+        
+        for channel_id in channels:
+            channel = self.get_channel(channel_id)
+            
+            if not channel:
+                try:
+                    channel = await self.fetch_channel(channel_id)
+                except Exception as e:
+                    self.logger.error(f"チャンネルが見つかりません。: {channel_id}: {e}")
+                    continue
+                
+            if channel and isinstance(channel, discord.VoiceChannel):
+                self.logger.info(f"チャンネル '{channel.name}' の参加者数を確認中...")
+                if not channel.members:
+                    self.logger.info(f"チャンネル '{channel.name}' の参加者は0人です。切断をスキップします。")
+                    return
+                
+                self.logger.info(f"チャンネル '{channel.name}' の参加者数: {len(channel.members)}")
+                
+                # 切断通知
+                if notise_channel:
+                    await notise_channel.send(f'''
+[ボイスチャンネル：{channel.name} ]の参加者に参加者のみなさん。
+夜更かし抑制等のため、本チャンネルは毎日4:00に自動的に切断されます。
+参加者の皆様、おやすみなさい。
+                                          ''')
+                    
+                for member in channel.members:
+                    try:
+                        await member.move_to(None)
+                        self.logger.info(f'{member.display_name} さんを切断しました。')
+                    except discord.Forbidden:
+                        self.logger.error(f'権限エラー: {member.display_name} さんを切断できませんでした。')
+                    except Exception as e:
+                        self.logger.error(f'エラー: {member.display_name} さんの切断中にエラーが発生しました: {e}')
+            
+            else:
+                self.logger.error(f"チャンネルID {channel_id} が見つからないか、ボイスチャンネルではありません。")
+        
+        self.logger.info("定期タスク完了。")        
+                
+    
     @tasks.loop(time=datetime.time(hour=7, minute=0, tzinfo=JST))
     async def daily_task(self):
         """毎日指定時刻に実行されるタスク"""

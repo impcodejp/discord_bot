@@ -17,7 +17,7 @@ class QiitaApi:
         params = {
             'per_page': self.per_page,
             'page': 1,
-            'query': 'tag:python stocks:>10'
+            'query': 'tag:python stocks:>=30'
         }
         response = requests.get(self.BASE_URL, params=params)
         response.raise_for_status()
