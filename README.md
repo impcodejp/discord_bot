@@ -1,6 +1,6 @@
 # Discord AI Assistant Bot
 
-Python製の多機能Discord Botです。Google Gemini AIを活用したチャット機能、毎朝の天気・技術記事通知、レシートの画像解析による家計簿補助機能などを備えています。
+Python製の多機能Discord Botです。Google Gemini AIを活用したチャット機能、毎朝の天気・技術記事通知、家計簿補助機能などを備えています。
 
 ## 🚀 主な機能
 
