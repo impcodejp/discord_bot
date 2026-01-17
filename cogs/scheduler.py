@@ -12,7 +12,7 @@ class Scheduler(commands.Cog):
         self.logger = bot.logger
         
         # APIクライアントの初期化
-        self.qiita_api = QiitaApi(Logger=self.logger)
+        self.qiita_api = QiitaApi(logger=self.logger)
         self.nagoya_weather_api = WeatherApi(230010, logger=self.logger)
 
         # タスクを開始
