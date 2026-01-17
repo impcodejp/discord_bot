@@ -334,12 +334,15 @@ class BotApp:
     
     async def _handle_ip_checker(self, interaction: discord.Interaction):
         """IPアドレス確認コマンドの実処理部分"""
+        
         self.logger.info("IPアドレス確認コマンド実行中...")
+        
+        await interaction.response.defer()
+        
         ip_checker = IpChecker(logger=self.logger)
         ip_address = await ip_checker.check_ip()
-        channel = self.bot.get_channel(FREE_CHAT_CHANNEL_ID)
-        if channel:
-            await channel.send(f"botサーバのIPアドレスは {ip_address} です。")
+        
+        await interaction.followup.send(ip_address)
         
 
     def start(self, api_key):
