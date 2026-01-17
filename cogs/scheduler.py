@@ -78,20 +78,32 @@ class Scheduler(commands.Cog):
                 url = item['url']
                 likes = item['likes_count']
                 itemlist.append(f"⭐ {likes} | {title}\n{url}")
-            
-        if channel:
-            embed = discord.Embed(
-                title=f"おはようございます！",
-                description=f"本日{datetime.datetime.now().strftime('%Y年%m月%d日')}の名古屋の天気は\n**{nagoya_weather[0]}** です☀️",
-                color=0x00ff00
+        
+        if nagoya_weather is None:
+            base_description = "本日の名古屋の天気情報を取得できませんでした。"
+            base_rain_info = (
+                "🔹 00-06時: 情報なし\n"
+                "🔹 06-12時: 情報なし\n"
+                "🔹 12-18時: 情報なし\n"
+                "🔹 18-24時: 情報なし"
             )
-            embed.set_thumbnail(url=nagoya_weather[5])
-            rain_info = (
+        else:   
+            base_description = f"本日{datetime.datetime.now().strftime('%Y年%m月%d日')}の名古屋の天気は\n**{nagoya_weather[0]}** です☀️"
+            base_rain_info = (
                 f"🔹 00-06時: {nagoya_weather[1]}\n"
                 f"🔹 06-12時: {nagoya_weather[2]}\n"
                 f"🔹 12-18時: {nagoya_weather[3]}\n"
                 f"🔹 18-24時: {nagoya_weather[4]}"
             )
+
+        if channel:
+            embed = discord.Embed(
+                title=f"おはようございます！",
+                description=base_description,
+                color=0x00ff00
+            )
+
+            rain_info = base_rain_info
             embed.add_field(name="☔ 降水確率", value=rain_info, inline=False)
 
             if itemlist:
