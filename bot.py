@@ -182,11 +182,11 @@ class MyBot(commands.Bot):
                 self.logger.error(f"Channel fetch error: {e}")
                 return
         city_cd = 230010  # 名古屋市の都市コード
-        nagoya_weather_api = WeatherApi(city_cd, logger=self.logger)
-        nagoya_weather = nagoya_weather_api.get()
+        nagoya_weather_api = await WeatherApi(city_cd, logger=self.logger)
+        nagoya_weather = await nagoya_weather_api.get()
 
         qiita_api = QiitaApi(per_page=5, logger=self.logger)
-        response = qiita_api.get()
+        response = await qiita_api.get()
         items = response
         itemlist = []
         

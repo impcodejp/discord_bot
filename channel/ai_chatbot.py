@@ -105,6 +105,7 @@ class AIChatbot:
             
             # 3. 返答を取り出す
             response_text = "\n".join([line for line in response.text.splitlines() if line != ""])
+            self.logger.info('Gemmaモデルからの応答取得完了')
             return response_text
 
         except Exception as e:

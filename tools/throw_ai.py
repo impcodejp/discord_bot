@@ -53,7 +53,7 @@ class GemmaChatbot:
                     safety_settings=self.safety_settings
                 )
             )
-            
+            self.logger.info('Gemmaモデルからの応答取得完了')
             return response.text
 
         except Exception as e:

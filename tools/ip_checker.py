@@ -15,7 +15,7 @@ class IpChecker:
                     padded_parts = [part.zfill(3) for part in parts]
                     padded_ip = '.'.join(padded_parts)
                     self.logger.info(f"取得したIPアドレス: {padded_ip[:8]}***.***")
-                    return f"botサーバのIPアドレスは {padded_ip[:8]}***.***です"
+                    return fr"botサーバのIPアドレスは {padded_ip[:8]}\*\*\*.\*\*\*です"
                     
                 else:
                     self.logger.error(f"Failed to get IP address, status code: {resp.status}")
