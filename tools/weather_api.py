@@ -21,13 +21,17 @@ class WeatherApi:
                 if resp.status == 200:
                     data = await resp.json()
                     forecast = data['forecasts'][0]
-
-            weather_data = []
-            weather_data.append(forecast['detail']['weather'])
-            weather_data.append(forecast['chanceOfRain']['T00_06'])
-            weather_data.append(forecast['chanceOfRain']['T06_12'])
-            weather_data.append(forecast['chanceOfRain']['T12_18'])
-            weather_data.append(forecast['chanceOfRain']['T18_24'])
-            weather_data.append(forecast['image']['url'])
-            self.logger.info("天気情報の取得に成功しました。")
-        return weather_data
+            
+            if forecast:
+                weather_data = []
+                weather_data.append(forecast['detail']['weather'])
+                weather_data.append(forecast['chanceOfRain']['T00_06'])
+                weather_data.append(forecast['chanceOfRain']['T06_12'])
+                weather_data.append(forecast['chanceOfRain']['T12_18'])
+                weather_data.append(forecast['chanceOfRain']['T18_24'])
+                weather_data.append(forecast['image']['url'])
+                self.logger.info("天気情報の取得に成功しました。")
+                return weather_data
+            else:
+                self.logger.error("天気情報の取得に失敗しました。")
+                return None
