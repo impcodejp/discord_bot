@@ -1,7 +1,7 @@
 import os
 import logging
-from bot import BotApp
 from utils.log_config import setup_logging
+from bot import run_bot
 
 
 class Main:
@@ -23,8 +23,7 @@ class Main:
         
         self.logger.info(f"Discord APIキー: {self.discord_api_key[:4]}****")
         
-        botapp = BotApp(self.logger)
-        botapp.start(self.discord_api_key)
+        run_bot(self.logger, self.discord_api_key)
 
 if __name__ == "__main__":
     main_instance = Main()
