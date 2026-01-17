@@ -8,6 +8,7 @@ from channel.ai_chatbot import AIChatbot
 from tools.throw_ai import GemmaChatbot
 from tools.qiita_api import QiitaApi
 from tools.weather_api import WeatherApi
+from tools.ip_checker import IpChecker
 
 # ==========================================
 # 定数・設定
@@ -260,6 +261,10 @@ class BotApp:
         async def pay_history(interaction: discord.Interaction):
             await self._handle_pay_history(interaction)
 
+        @self.bot.tree.command(name="ip_checker", description="IPアドレスを確認します")
+        async def ip_checker(interaction: discord.Interaction):
+            await self._handle_ip_checker(interaction)
+
     async def _handle_pay_history(self, interaction: discord.Interaction):
         """支払い履歴コマンドの実処理部分"""
         self.logger.info("支払い履歴コマンド実行中...")
@@ -326,6 +331,16 @@ class BotApp:
             output_text += f"[{date_japan}] {msg.author.display_name}: {msg.content}\n"
         
         return output_text
+    
+    async def _handle_ip_checker(self, interaction: discord.Interaction):
+        """IPアドレス確認コマンドの実処理部分"""
+        self.logger.info("IPアドレス確認コマンド実行中...")
+        ip_checker = IpChecker(logger=self.logger)
+        ip_address = await ip_checker.check_ip()
+        channel = self.bot.get_channel(FREE_CHAT_CHANNEL_ID)
+        if channel:
+            await channel.send(f"botサーバのIPアドレスは {ip_address} です。")
+        
 
     def start(self, api_key):
         self.bot.run(api_key)
