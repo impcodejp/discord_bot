@@ -20,7 +20,7 @@ class IpChecker:
                     subject = "【通知】botサーバのIPアドレス確認"
                     body = f"""
                     discordサーバから、botサーバのIPアドレスは通知依頼がありました。
-                    botサーバのある環境のグローバルIPは {padded_ip}です。
+                    botサーバのある環境のグローバルIPは {data['ip']}です。
                     """
                     result = mail_sender.send(subject=subject, body=body)
                     if result:
