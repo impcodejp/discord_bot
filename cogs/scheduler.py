@@ -10,6 +10,11 @@ class Scheduler(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = bot.logger
+        
+        # APIクライアントの初期化
+        self.qiita_api = QiitaApi(Logger=self.logger)
+        self.nagoya_weather_api = WeatherApi(230010, logger=self.logger)
+
         # タスクを開始
         self.daily_task.start()
         self.disconnect_voice_channels.start()
@@ -65,12 +70,10 @@ class Scheduler(commands.Cog):
                 return
 
         # 天気取得
-        nagoya_weather_api = WeatherApi(230010, logger=self.logger)
-        nagoya_weather = await nagoya_weather_api.get()
+        nagoya_weather = await self.nagoya_weather_api.get()
 
         # Qiita取得
-        qiita_api = QiitaApi(per_page=5, logger=self.logger)
-        items = await qiita_api.get()
+        items = await self.qiita_api.get()
         itemlist = []
         if items:
             for item in items:
