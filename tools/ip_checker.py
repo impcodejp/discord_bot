@@ -19,8 +19,8 @@ class IpChecker:
                     mail_sender = SakuraMailSender(logger=self.logger)
                     subject = "【通知】botサーバのIPアドレス確認"
                     body = f"""
-                    discordサーバから、botサーバのIPアドレス通知依頼がありました。
-                    botサーバのある環境のグローバルIPは {data['ip']}です。
+discordサーバから、botサーバのIPアドレス通知依頼がありました。
+botサーバのある環境のグローバルIPは {data['ip']}です。
                     """
                     result = mail_sender.send(subject=subject, body=body)
                     if result:
