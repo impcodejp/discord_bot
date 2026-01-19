@@ -46,7 +46,7 @@ class AIChatbot:
             previous_messages.reverse()
 
             for msg in previous_messages:
-                role_name = "あなた" if msg.author.bot else msg.author.display_name
+                role_name = "あぴ" if msg.author.bot else msg.author.display_name
                 content = msg.content if msg.content else "(画像)"
                 cleaned_text = "\n".join([line for line in content.splitlines() if line != ""])
                 history_text += f"""
