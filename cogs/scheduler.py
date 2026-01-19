@@ -56,6 +56,8 @@ class Scheduler(commands.Cog):
                         self.logger.info(f'{member.display_name} さんを切断しました。')
                     except Exception as e:
                         self.logger.error(f'切断エラー: {e}')
+                else:
+                    self.logger.info(f'{channel.name}')
 
     @tasks.loop(time=datetime.time(hour=7, minute=0, tzinfo=const.JST))
     async def daily_task(self):
