@@ -52,3 +52,6 @@ class Persona_update(commands.Cog):
             output_text += f"[{date_japan}] {msg.author.display_name}: {msg.content}\n"
         
         return output_text
+    
+async def setup(bot):
+    await bot.add_cog(Persona_update(bot))
