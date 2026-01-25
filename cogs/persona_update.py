@@ -25,7 +25,7 @@ class Persona_update(commands.Cog):
         await interaction.response.defer()
         try:
             # 共通ロジックを呼び出す
-            result_msg = await self.execute_update_logic(interaction.channel)
+            result_msg = await self.execute_update_logic(const.CHAT_CHANNEL_ID)
             await interaction.followup.send(f'✅ {result_msg}')
         except Exception as e:
             await interaction.followup.send(f"❌ エラーが発生しました: {e}")
