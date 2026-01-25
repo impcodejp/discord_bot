@@ -35,6 +35,7 @@ class MyBot(commands.Bot):
         await self.load_extension("cogs.scheduler")
         await self.load_extension("cogs.persona_update")
         
+        
         self.logger.info("全Cogsのロード完了")
         
         # コマンド同期

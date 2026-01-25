@@ -19,6 +19,7 @@ env/
 *.log
 .persona
 
+
 # --- OSやエディタの設定ファイル ---
 # MacのFinder情報やVS Codeの設定など
 .DS_Store
