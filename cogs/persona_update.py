@@ -24,8 +24,16 @@ class Persona_update(commands.Cog):
     async def persona_update(self, interaction: discord.Interaction):
         await interaction.response.defer()
         try:
+            channel = self.bot.get_channel(const.CHAT_CHANNEL_ID)
+            if not channel:
+                try:
+                    channel = await self.bot.fetch_channel(const.CHAT_CHANNEL_ID)
+                except Exception as e:
+                    self.logger.error(f"Scheduler: チャットボットチャンネル取得失敗: {e}")
+                    return
+
             # 共通ロジックを呼び出す
-            result_msg = await self.execute_update_logic(const.CHAT_CHANNEL_ID)
+            result_msg = await self.execute_update_logic(channel)
             await interaction.followup.send(f'✅ {result_msg}')
         except Exception as e:
             await interaction.followup.send(f"❌ エラーが発生しました: {e}")
