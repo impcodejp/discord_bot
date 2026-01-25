@@ -76,7 +76,7 @@ class Persona_update(commands.Cog):
         
         try:
             self.mail_sender.send(subject, new_persona_content)
-            self.logger("メール送信成功")
+            self.logger.info("メール送信成功")
         except Exception as e:
             self.logger.error(f'メール送信失敗：{e}')
 
