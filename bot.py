@@ -20,6 +20,7 @@ class MyBot(commands.Bot):
         self.ai_chatbot = AIChatbot(AI_API_KEY, logger=self.logger)
         self.ai_throw_gemma27 = GemmaChatbot(AI_API_KEY, logger=self.logger)
         self.ai_throw_gemma4 = GemmaChatbot(AI_API_KEY, model_name="gemma-3-4b-it", logger=self.logger)
+        self.ai_throw_gemini = GemmaChatbot(AI_API_KEY, model_name="gemini-3-flash", logger=self.logger)
 
         # チャンネルごとのチャットハンドラー
         self.handlers = {
@@ -32,6 +33,7 @@ class MyBot(commands.Bot):
         await self.load_extension("cogs.utility")
         await self.load_extension("cogs.finance")
         await self.load_extension("cogs.scheduler")
+        await self.load_extension("cogs.persona_update")
         
         self.logger.info("全Cogsのロード完了")
         
