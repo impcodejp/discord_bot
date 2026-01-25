@@ -67,7 +67,14 @@ class Persona_update(commands.Cog):
 このペルソナは総文字数は最大2000~2500文字の範囲に抑え、単純増加ではなく増えすぎる場合には要約して短縮し、文字数の超過と大幅な減少にはペナルティを与えます。
 なおこのチャットの返答は、チャットボットへ学習させるためのペルソナとして活用するため、前置きや装飾は不要です。
 '''
-
+        try:
+            with open('.test', mode='w', encoding='utf-8') as f:
+                f.write(prompt)
+            # ログに残しておくと確認しやすいです（不要なら削除可）
+            self.logger.info("Prompt content saved to .test successfully.")
+        except Exception as e:
+            self.logger.error(f"プロンプト保存エラー (.test): {e}")     
+        
         # 4. API送信
         new_persona_content = await self._call_api_mock(prompt)
 
