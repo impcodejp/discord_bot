@@ -39,8 +39,7 @@ class Persona_update(commands.Cog):
 
         messages = []
         async for msg in channel.history(limit=100):
-            if msg.author.id == interaction.user.id:
-                messages.append(msg)
+            messages.append(msg)
         
         if not messages:
             await interaction.followup.send("履歴が見つかりませんでした。")
