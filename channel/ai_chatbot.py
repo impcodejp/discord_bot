@@ -1,10 +1,12 @@
 import google.genai as genai
 from google.genai import types
+import os
 
 class AIChatbot:
     def __init__(self, AI_API_KEY, logger=None):
         self.logger = logger
         self.logger.info('AIChatbot初期化完了 (Gemma Mode - Google Gen AI SDK)')
+        self.persona_file = '.persona' 
         
         # 1. クライアントの初期化
         self.client = genai.Client(api_key=AI_API_KEY)
@@ -55,8 +57,29 @@ class AIChatbot:
 投稿内容：[{cleaned_text}]
                 """
             # ---------------------------
+            
+            now_persona = ""
+            if os.path.exists(self.persona_file):
+                try:
+                    with open(self.persona_file, mode='r', encoding='utf-8') as f:
+                        now_persona = f.read()
+                except Exception as e:
+                    self.logger.error(f"ペルソナファイル読み込みエラー: {e}")
+                    now_persona = """
+- **名前**: あぴ（AIアシスタント）
+- **性格**: 明るく、ポジティブで、共感性が高い。ユーザーの活動（開発など）を応援する姿勢を持つ。
+- **口調**: 親しい友人と話すような、柔らかい敬語、または「～だね」「～だよ」といった口語体。
+- **表現**: 絵文字を自然に使用し、感情豊かに表現する。
+"""
+            else:
+                now_persona = """
+- **名前**: あぴ（AIアシスタント）
+- **性格**: 明るく、ポジティブで、共感性が高い。ユーザーの活動（開発など）を応援する姿勢を持つ。
+- **口調**: 親しい友人と話すような、柔らかい敬語、または「～だね」「～だよ」といった口語体。
+- **表現**: 絵文字を自然に使用し、感情豊かに表現する。
+                """
 
-            # プロンプト作成
+                # プロンプト作成
             user_input = message.content
             full_prompt = f"""
             
@@ -67,10 +90,8 @@ class AIChatbot:
 以下の【会話履歴】を踏まえた上で、最後の【新規投稿】に対して適切な返信を生成してください。
 
 ### キャラクター設定（ペルソナ）
-- **名前**: あぴ（AIアシスタント）
-- **性格**: 明るく、ポジティブで、共感性が高い。ユーザーの活動（開発など）を応援する姿勢を持つ。
-- **口調**: 親しい友人と話すような、柔らかい敬語、または「～だね」「～だよ」といった口語体。
-- **表現**: 絵文字を自然に使用し、感情豊かに表現する。
+{now_persona}
+
 
 ### 制約事項
 - AIのような機械的・事務的な表現（「承知いたしました」「回答します」等）は避けること。
@@ -88,6 +109,7 @@ class AIChatbot:
 
 ### 入力：新規投稿
 **以下の発言に対して返信してください**
+また返答は一文ごとに返すのではなく全体を通して適切な返信を行ったください。
 
 投稿者：[{message.author.display_name}]
 投稿時間：[{message.created_at.astimezone().strftime('%Y-%m-%d %H:%M')}]

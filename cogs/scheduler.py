@@ -18,15 +18,21 @@ class Scheduler(commands.Cog):
         # タスクを開始
         self.daily_task.start()
         self.disconnect_voice_channels.start()
+        self.scheduled_persona_update.start()
 
     def cog_unload(self):
+        # Cogがアンロードされたらタスクを止める
         self.daily_task.cancel()
         self.disconnect_voice_channels.cancel()
+        self.scheduled_persona_update.cancel()
 
+    # ==========================================
+    # 1. ボイスチャンネル自動切断 (毎日 4:00)
+    # ==========================================
     @tasks.loop(time=datetime.time(hour=4, minute=00, tzinfo=const.JST))
     async def disconnect_voice_channels(self):
-        self.logger.info("毎朝4:00定期タスク実行中...")
-        channels_to_check = const.VOICE_CHANNELS_TO_DISCONNECT['4-00']
+        self.logger.info("毎朝4:00定期タスク(VC切断)実行中...")
+        channels_to_check = const.VOICE_CHANNELS_TO_DISCONNECT.get('4-00', [])
         notice_channel = self.bot.get_channel(const.FREE_CHAT_CHANNEL_ID)
         
         for channel_id in channels_to_check:
@@ -40,7 +46,7 @@ class Scheduler(commands.Cog):
                 
             if channel and isinstance(channel, discord.VoiceChannel):
                 if not channel.members:
-                    return
+                    continue
                 
                 # 切断通知
                 if notice_channel:
@@ -57,11 +63,57 @@ class Scheduler(commands.Cog):
                     except Exception as e:
                         self.logger.error(f'切断エラー: {e}')
                 else:
-                    self.logger.info(f'{channel.name}')
+                    self.logger.info(f'{channel.name} の切断処理完了')
 
+    # ==========================================
+    # 2. ペルソナ自動更新 (毎日 5:00)
+    # ==========================================
+    @tasks.loop(time=datetime.time(hour=5, minute=00, tzinfo=const.JST))
+    async def scheduled_persona_update(self):
+        self.logger.info("毎朝4:10定期タスク(ペルソナ更新)実行中...")
+
+        # 1. Persona_update Cogを取得して連携する
+        # (cogs.persona_updateファイル内のクラス名が "Persona_update" である前提)
+        persona_cog = self.bot.get_cog("Persona_update")
+        if not persona_cog:
+            self.logger.error("Scheduler: Persona_update Cogが見つかりません。ロード順を確認してください。")
+            return
+
+        # 2. 対象チャンネルの取得
+        channel = self.bot.get_channel(const.CHAT_CHANNEL_ID)
+        if not channel:
+            try:
+                channel = await self.bot.fetch_channel(const.CHAT_CHANNEL_ID)
+            except Exception as e:
+                self.logger.error(f"Scheduler: チャットボットチャンネル取得失敗: {e}")
+                return
+
+        # 3. 処理の実行
+        try:
+            # Cogの共通関数を直接呼び出す
+            result_msg = await persona_cog.execute_update_logic(channel)
+            self.logger.info(f"Scheduler: 定時ペルソナ更新成功 - {result_msg}")
+            common_channel = self.bot.get_channel(const.FREE_CHAT_CHANNEL_ID)
+            if not common_channel:
+                try:
+                    common_channel = await self.bot.fetch_channel(const.FREE_CHAT_CHANNEL_ID)
+                except:
+                    self.logger.error(f'Scheduler: フリーチャットチャンネル取得失敗: {e}')
+                    return
+            
+            await common_channel.send("定時ペルソナ更新に成功しました")
+            
+            
+        except Exception as e:
+            self.logger.error(f"Scheduler: 定時ペルソナ更新エラー: {e}")
+            
+
+    # ==========================================
+    # 3. デイリータスク [天気・Qiita] (毎日 7:00)
+    # ==========================================
     @tasks.loop(time=datetime.time(hour=7, minute=0, tzinfo=const.JST))
     async def daily_task(self):
-        self.logger.info("毎朝7:00定期タスク実行中...")
+        self.logger.info("毎朝7:00定期タスク(天気・Qiita)実行中...")
         channel = self.bot.get_channel(const.FREE_CHAT_CHANNEL_ID)
     
         if not channel:
@@ -116,6 +168,17 @@ class Scheduler(commands.Cog):
                 embed.add_field(name="🚀 注目のQiita記事 (Python)", value=qiita_text, inline=False)
 
             await channel.send(embed=embed)
+
+    # ==========================================
+    # Before Loops (Bot準備完了待ち)
+    # ==========================================
+    @disconnect_voice_channels.before_loop
+    async def before_disconnect_voice_channels(self):
+        await self.bot.wait_until_ready()
+
+    @scheduled_persona_update.before_loop
+    async def before_persona_update(self):
+        await self.bot.wait_until_ready()
 
     @daily_task.before_loop
     async def before_daily_task(self):
