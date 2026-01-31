@@ -63,7 +63,7 @@ class Utility(commands.Cog):
         
     @app_commands.command(name="leave_voicechannel", description="botをボイスチャンネルから退出させます。")
     async def leave_voicechannel(self, interaction: discord.Interaction):
-        self.logger("ボイスチャンネルからの切断リクエストを受信")
+        self.logger.info("ボイスチャンネルからの切断リクエストを受信")
 
         # サーバー内のBotのボイス接続状況を取得
         voice_client = interaction.guild.voice_client
@@ -77,10 +77,10 @@ class Utility(commands.Cog):
                 # 切断処理
                 await voice_client.disconnect()
                 await interaction.response.send_message("ボイスチャンネルから退出しました。")
-                self.logger("切断完了")
+                self.logger.info("切断完了")
 
             except Exception as e:
-                self.logger(f"切断エラー: {e}")
+                self.logger.error(f"切断エラー: {e}")
                 await interaction.response.send_message("切断中にエラーが発生しました。", ephemeral=True)
         else:
             # そもそも接続していない場合
