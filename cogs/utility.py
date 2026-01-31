@@ -28,7 +28,7 @@ class Utility(commands.Cog):
         
     @app_commands.command(name="join_voicechannel", description="botをボイスチャンネルに参加させます。")
     async def join_voicechannel(self, interaction: discord.Interaction):
-        self.logger("ボイスチャンネルへのbotの参加を待機中")
+        self.logger.info("ボイスチャンネルへのbotの参加を待機中")
         
         # 参加するボイスチャンネルのID指定
         channel_id = const.YOMIAGE_YOMI_CHANNEL_ID
@@ -58,7 +58,7 @@ class Utility(commands.Cog):
             await interaction.response.send_message(message)
 
         except Exception as e:
-            self.logger(f"接続エラー: {e}")
+            self.logger.error(f"接続エラー: {e}")
             await interaction.response.send_message("接続中にエラーが発生しました。", ephemeral=True)
         
 async def setup(bot):
