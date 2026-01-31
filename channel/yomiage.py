@@ -14,7 +14,7 @@ class YOMIAGE:
             logger.info('yomiage initialize')
         self.bot = bot
         self.logger = logger
-        self.yomi_channel_id = const.YOMIAGE_YOMI_CHANNEL_ID
+        self.yomi_channel_id = const.YOMIAGE_KAKI_CHANNEL_ID
         if self.logger:
             self.logger.info('読み上げチャンネルシステムのinitialize完了')
 
