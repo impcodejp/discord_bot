@@ -6,7 +6,7 @@ import os
 
 # VOICEVOXの設定
 VOICEVOX_API_URL = "http://127.0.0.1:50021"
-SPEAKER_ID = os.getenv('SPEAKER_ID')
+SPEAKER_ID = int(os.getenv('SPEAKER_ID'))
 SPEED_SCALE = 1.3  # 1.0が標準。1.2〜1.5くらいが聞き取りやすいです
 PITCH_SCALE = 0.0  # 0.0が標準。上げると声が高くなります
 INTONATION_SCALE = 1.0 # 1.0が標準。
