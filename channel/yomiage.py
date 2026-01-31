@@ -7,6 +7,9 @@ import os
 # VOICEVOXの設定
 VOICEVOX_API_URL = "http://127.0.0.1:50021"
 SPEAKER_ID = 3
+SPEED_SCALE = 1.5  # 1.0が標準。1.2〜1.5くらいが聞き取りやすいです
+PITCH_SCALE = 0.0  # 0.0が標準。上げると声が高くなります
+INTONATION_SCALE = 1.0 # 1.0が標準。
 
 class YOMIAGE:
     def __init__(self, bot, logger=None):
@@ -38,6 +41,9 @@ class YOMIAGE:
 
                 # 2. Synthesis
                 synthesis_url = f"{VOICEVOX_API_URL}/synthesis"
+                query_data['speedScale'] = SPEED_SCALE
+                query_data['pitchScale'] = PITCH_SCALE
+                query_data['intonationScale'] = INTONATION_SCALE
                 synthesis_params = {"speaker": SPEAKER_ID}
                 
                 self.logger.info(f"[DEBUG] Synthesis送信: {synthesis_url}")
