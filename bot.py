@@ -4,6 +4,7 @@ import os
 import logging
 from discord.ext import commands
 from channel.ai_chatbot import AIChatbot
+from channel.yomiage import YOMIAGE
 from tools.throw_ai import GemmaChatbot
 import const
 
@@ -18,6 +19,7 @@ class MyBot(commands.Bot):
         # AIの初期化 (Cogsからも使えるように self に保持)
         AI_API_KEY = os.getenv('GEMINI_API_KEY')
         self.ai_chatbot = AIChatbot(AI_API_KEY, logger=self.logger)
+        self.yomiage = YOMIAGE(logger = self.logger)
         self.ai_throw_gemma27 = GemmaChatbot(AI_API_KEY, logger=self.logger)
         self.ai_throw_gemma4 = GemmaChatbot(AI_API_KEY, model_name="gemma-3-4b-it", logger=self.logger)
         self.ai_throw_gemini = GemmaChatbot(AI_API_KEY, model_name="gemini-2.5-flash", logger=self.logger)
@@ -25,6 +27,7 @@ class MyBot(commands.Bot):
         # チャンネルごとのチャットハンドラー
         self.handlers = {
             const.CHAT_CHANNEL_ID: self.ai_chatbot,
+            const.YOMIAGE_KAKI_CHANNEL_ID: self.yomiage
         }
 
     async def setup_hook(self):

@@ -1,8 +1,10 @@
 # cogs/utility.py
 import discord
+import const
 from discord import app_commands
 from discord.ext import commands
 from tools.ip_checker import IpChecker
+
 
 class Utility(commands.Cog):
     def __init__(self, bot):
@@ -23,6 +25,41 @@ class Utility(commands.Cog):
         ip_address = await checker.check_ip()
         
         await interaction.followup.send(ip_address)
+        
+    @app_commands.command(name="join_voicechannel", description="botをボイスチャンネルに参加させます。")
+    async def join_voicechannel(self, interaction: discord.Interaction):
+        self.logger("ボイスチャンネルへのbotの参加を待機中")
+        
+        # 参加するボイスチャンネルのID指定
+        channel_id = const.YOMIAGE_YOMI_CHANNEL_ID
+        
+        # 2. IDからチャンネルオブジェクトを取得
+        channel = interaction.guild.get_channel(channel_id)
 
+        # チャンネルが見つからない、またはボイスチャンネルでない場合のガード
+        if channel is None or not isinstance(channel, discord.VoiceChannel):
+            await interaction.response.send_message("指定されたボイスチャンネルが見つかりませんでした。", ephemeral=True)
+            return
+
+        # 3.すでにBotがほかのチャンネルにいる場合のハンドリング
+        voice_client = interaction.guild.voice_client
+        
+        try:
+            if voice_client is not None:
+                # すでに接続済みの場合は移動する
+                await voice_client.move_to(channel)
+                message = f"{channel.name} に移動しました。"
+            else:
+                # 新規接続
+                await channel.connect()
+                message = f"{channel.name} に参加しました。"
+            
+            # 4. ユーザーへの応答（これがないと「インタラクションに失敗しました」と出る）
+            await interaction.response.send_message(message)
+
+        except Exception as e:
+            self.logger(f"接続エラー: {e}")
+            await interaction.response.send_message("接続中にエラーが発生しました。", ephemeral=True)
+        
 async def setup(bot):
     await bot.add_cog(Utility(bot))
