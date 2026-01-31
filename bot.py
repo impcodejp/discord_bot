@@ -51,6 +51,8 @@ class MyBot(commands.Bot):
     async def on_message(self, message):
         if message.author == self.user:
             return
+        
+        self.logger.info(f"[DEBUG_MSG] 受信: '{message.content}' | ChID: {message.channel.id} | Author: {message.author}")
 
         # AIチャット機能 (handler)
         handler = self.handlers.get(message.channel.id)
@@ -58,6 +60,8 @@ class MyBot(commands.Bot):
             response = await handler.process(message)
             if response:
                 await message.channel.send(response)
+        else:
+            self.logger.info(f"[DEBUG_MSG] このチャンネルID ({message.channel.id}) に対応するハンドラーは登録されていません。設定値: {self.handlers.keys()}")
 
         # コマンド処理
         await self.process_commands(message)
